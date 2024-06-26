@@ -1,7 +1,8 @@
 import pytest
 import pandas as pd
+import numpy as np
 
-from validate_addresses import process_abp_data, process_input_row, is_valid_address
+from validate_addresses import process_abp_data, process_input_row, is_valid_address, validate_addresses
 
 
 def test_process_abp_data_can_process_one_address():
@@ -26,17 +27,13 @@ def test_process_abp_data_can_process_multiple_addresses():
     assert output == expected_output
 
 def test_process_input_row_converts_to_upper_case():
-    input_data = pd.DataFrame({
-
-        'Address_Line_1': ['Trough Field Supply'],
-        'Address_Line_2': ['Delgate Bank'],
-        'Address_Line_3': ['Weston Hills'],
-        'Address_Line_4': ['SPALDING'],
-        'Address_Line_5': [''],
-        'Postcode': ['PE12 6DW']
-    })
     output = process_input_row('Trough Field Supply', 'Delgate Bank', 'Weston Hills')
     expected_output = 'TROUGH FIELD SUPPLY DELGATE BANK WESTON HILLS'
+    assert output == expected_output
+
+def test_process_input_row_converts_rd_to_road():
+    output = process_input_row('IN WAREHOUSE', 'ATLAS RD', '')
+    expected_output = 'IN WAREHOUSE ATLAS ROAD'
     assert output == expected_output
 
 def test_is_valid_address_returns_yes_for_valid_address():
@@ -58,3 +55,11 @@ def test_is_valid_address_returns_no_for_invalid_address():
     valid_addresses = process_abp_data(abp_data)
     output = is_valid_address('Trough Field Supply', 'Delgate Bank', 'Weston Hills', 'PE12 6DW', valid_addresses)
     assert output == 'No'
+
+def test_validate_addresses_produces_correct_output():
+    input_file = pd.read_csv('test_input_data.csv')
+    abp_file = pd.read_csv('example_abp_data.csv')
+
+    output_df = validate_addresses(input_file, abp_file)
+    expected_output = ["Yes", "Yes", "Yes", "Yes", "Yes"]
+    assert np.array_equal(output_df['Street_In_Postcode'].values, expected_output)
