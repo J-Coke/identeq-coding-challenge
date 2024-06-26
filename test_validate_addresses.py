@@ -46,7 +46,7 @@ def test_is_valid_address_returns_yes_for_valid_address():
     output = is_valid_address('Trough Field Supply', 'Delgate Bank', 'Weston Hills', 'PE12 6DW', valid_addresses)
     assert output == 'Yes'
 
-def test_is_valid_address_returns_no_for_invalid_address():
+def test_is_valid_address_returns_no_for_invalid_street_at_valid_postcode():
     abp_data = pd.DataFrame({
         'SINGLE_LINE_ADDRESS': ["AAA"],
         'POSTCODE': ['PE12 6DW'],
@@ -54,6 +54,16 @@ def test_is_valid_address_returns_no_for_invalid_address():
     })
     valid_addresses = process_abp_data(abp_data)
     output = is_valid_address('Trough Field Supply', 'Delgate Bank', 'Weston Hills', 'PE12 6DW', valid_addresses)
+    assert output == 'No'
+
+def test_is_valid_address_returns_no_for_invalid_postcode():
+    abp_data = pd.DataFrame({
+        'SINGLE_LINE_ADDRESS': ["AAA"],
+        'POSTCODE': ['PE12 6DW'],
+        'STREET_NAME': ['REGENT STREET']
+    })
+    valid_addresses = process_abp_data(abp_data)
+    output = is_valid_address('Trough Field Supply', 'Delgate Bank', 'Weston Hills', 'SL6 6GY', valid_addresses)
     assert output == 'No'
 
 def test_validate_addresses_produces_correct_output():

@@ -1,7 +1,7 @@
 import pandas as pd
 
 def validate_addresses(input_df, abp_df):
-    valid_addresses = process_abp_data(abp_df)
+    valid_addresses = process_abp_data(abp_df.fillna(''))
     addresses_for_validation = input_df.fillna('')
     addresses_for_validation['Street_In_Postcode'] = addresses_for_validation.apply(
         lambda row: is_valid_address(row['Address_Line_1'], row['Address_Line_2'], row['Address_Line_3'], row['Postcode'], valid_addresses), axis=1
@@ -14,7 +14,7 @@ def process_abp_data(abp_table):
     for index, row in abp_table.iterrows():
         if row['POSTCODE'] not in valid_addresses_by_postcode:
             valid_addresses_by_postcode[row['POSTCODE']] = [row['STREET_NAME']]
-        else:
+        elif row['STREET_NAME'] not in valid_addresses_by_postcode[row['POSTCODE']]:
             valid_addresses_by_postcode[row['POSTCODE']].append(row['STREET_NAME'])
     return valid_addresses_by_postcode
 
@@ -25,8 +25,13 @@ def process_input_row(column_1, column_2, column_3):
     return unabbreviated_address_lines.strip()
 
 def is_valid_address(column_1, column_2, column_3, postcode, valid_addresses):
+    if postcode not in valid_addresses:
+        return 'No'
     for street in valid_addresses[postcode]:
         if street in process_input_row(column_1, column_2, column_3):
             return 'Yes'
     return 'No'
 
+input_file = pd.read_csv('example_input_data.csv')
+abp_file = pd.read_csv('example_abp_data.csv')
+validate_addresses(input_file, abp_file).to_csv('example_output_data.csv')
