@@ -1,7 +1,7 @@
 import pytest
 import pandas as pd
 
-from validate_addresses import process_abp_data, process_input_row
+from validate_addresses import process_abp_data, process_input_row, is_valid_address
 
 
 def test_process_abp_data_can_process_one_address():
@@ -35,6 +35,26 @@ def test_process_input_row_converts_to_upper_case():
         'Address_Line_5': [''],
         'Postcode': ['PE12 6DW']
     })
-    output = process_input_row('Trough Field Supply', 'Delgate Bank', 'Weston Hills', 'PE12 6DW')
-    expected_output = ('TROUGH FIELD SUPPLY DELGATE BANK WESTON HILLS', 'PE12 6DW')
+    output = process_input_row('Trough Field Supply', 'Delgate Bank', 'Weston Hills')
+    expected_output = 'TROUGH FIELD SUPPLY DELGATE BANK WESTON HILLS'
     assert output == expected_output
+
+def test_is_valid_address_returns_yes_for_valid_address():
+    abp_data = pd.DataFrame({
+        'SINGLE_LINE_ADDRESS': ["AAA"],
+        'POSTCODE': ['PE12 6DW'],
+        'STREET_NAME': ['DELGATE BANK']
+    })
+    valid_addresses = process_abp_data(abp_data)
+    output = is_valid_address('Trough Field Supply', 'Delgate Bank', 'Weston Hills', 'PE12 6DW', valid_addresses)
+    assert output == 'Yes'
+
+def test_is_valid_address_returns_no_for_invalid_address():
+    abp_data = pd.DataFrame({
+        'SINGLE_LINE_ADDRESS': ["AAA"],
+        'POSTCODE': ['PE12 6DW'],
+        'STREET_NAME': ['REGENT STREET']
+    })
+    valid_addresses = process_abp_data(abp_data)
+    output = is_valid_address('Trough Field Supply', 'Delgate Bank', 'Weston Hills', 'PE12 6DW', valid_addresses)
+    assert output == 'No'
